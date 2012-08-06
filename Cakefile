@@ -59,6 +59,7 @@ compileFile = (root, path, level) ->
     ""
 
 task 'build', ->
+  fs.mkdirSync('./dist')
   content = compileFile("./packages/tower", "./packages/tower/client.coffee", 0).replace /Tower\.version *= *.+\n/g, (_) ->
     version = """
 Tower.version = "#{VERSION}"
@@ -69,7 +70,7 @@ Tower.version = "#{VERSION}"
     result = JS_COPYRIGHT + result
     _console.error error.stack if error
     fs.writeFileSync "./dist/tower.js", result
-    fs.writeFileSync './test/example/public/javascripts/vendor/javascripts/tower.js', result
+    #fs.writeFileSync './test/example/public/javascripts/vendor/javascripts/tower.js', result
     return
     unless error
       #result = obscurify(result)
