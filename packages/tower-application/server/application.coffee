@@ -3,6 +3,7 @@ File    = require('pathfinder').File
 fs      = require('fs')
 server  = null
 io      = null
+domain  = require('domain')
 
 # Entry point to your application.
 class Tower.Application extends Tower.Engine
@@ -196,6 +197,14 @@ class Tower.Application extends Tower.Engine
 
   listen: ->
     unless Tower.env == 'test'
+      @serverDomain = serverDomain = domain.create()
+
+      # This will catch async errors in regards to overall app,
+      # but it doesn't get async errors in http requests for some reason.
+      serverDomain.on 'error', ->
+        console.log 'SERVER DOMAIN ERROR', arguments
+
+      #serverDomain.run =>
       @server.on 'error', (error) ->
         if error.errno == 'EADDRINUSE'
           console.log('   Try using a different port: `node server -p 3001`')

@@ -48,6 +48,15 @@ Tower.ControllerInstrumentation =
 
       block = (callback) =>
         try
+          #d = require('domain').create()
+          #d.on 'error', (error) ->
+          #  console.log 'eerrrr!!!', error
+          #  console.log error.stack
+          #d.run =>
+          #  @[@action].call @, callback
+
+          #@request.domain.run =>
+          #  process.nextTick =>
           @[@action].call @, callback
         catch error
           callback(error)

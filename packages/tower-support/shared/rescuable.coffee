@@ -1,3 +1,6 @@
+# http://benno.id.au/blog/2011/08/08/nodejs-exceptions
+# http://nodejs.org/api/domain.html
+# https://github.com/CrabDude/trycatch
 Tower.SupportRescuable =
   ClassMethods:
     rescueHandlers: ->

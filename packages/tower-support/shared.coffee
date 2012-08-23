@@ -27,5 +27,6 @@ require './shared/url'
 require './shared/locale/en'
 require './shared/format'
 require './shared/factory'
+require './shared/rescuable'
 
 module.exports = Tower.Support
