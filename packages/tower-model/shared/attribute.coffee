@@ -2,6 +2,36 @@ _ = Tower._
 
 # @todo needs lots of refactoring
 class Tower.ModelAttribute
+  @attributeOptions: (options = {}) ->
+    type = options.type || 'String'
+
+    if typeof type != 'string'
+      itemType  = type[0]
+      type      = 'Array'
+
+    encodingType = switch type
+      when 'Id', 'Date', 'Array', 'String', 'Integer', 'Float', 'BigDecimal', 'Time', 'DateTime', 'Boolean', 'Object', 'Number', 'Geo'
+        type
+      else
+        'Model'
+
+    options.type = type
+    options.itemType = itemType
+    options.encodingType = encodingType
+
+    @_setDefault(options)
+
+    options
+
+  @_setDefault: (options) ->
+    unless options.default
+      if options.type == 'Geo'
+        options.default = lat: null, lng: null
+      else if options.type == 'Array'
+        options.default = []
+
+    options.default
+
   # @example Datatypes
   #   'boolean'
   #   'integer'

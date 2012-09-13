@@ -1,6 +1,30 @@
 attr        = Tower.ModelAttribute
 
 describe "Tower.ModelFields", ->
+  describe 'Tower.field', ->
+    test 'string', ->
+      field = Tower.field('title')
+      meta  = field._meta
+
+      assert.deepEqual meta,
+        isAttribute: true
+        type: 'String'
+        encodingType: 'String'
+        itemType: undefined
+
+    describe '.extend', ->
+      test 'string', (done) ->
+        App.TowerFieldTest = Tower.Model.extend
+          title: Tower.field()
+          email: Tower.field()
+
+        #record = App.TowerFieldTest.build(title: 'Something!')
+
+        App.TowerFieldTest.get('emberFields')
+        App.TowerFieldTest.reopen(firstName: Tower.field('firstName'))
+        App.TowerFieldTest.get('emberFields')
+        done()
+
   describe 'class', ->
     test 'type: "Id"', ->
       field = App.BaseModel.fields().id

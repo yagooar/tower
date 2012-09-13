@@ -1,10 +1,47 @@
 _ = Tower._
 
+Tower.field = (name, options = {}) ->
+  options = Tower.ModelAttribute.attributeOptions(options)
+
+  meta = options
+  meta.isAttribute = true
+
+  descriptor = Ember.computed((key, value) ->
+    if arguments.length == 2
+      #value = field.encode(value, @)
+      value = @setAttribute(key, value)
+      # @todo this is having issues with App.MyModel.build
+      # Tower.cursorNotification("#{@constructor.className()}.#{key}")
+      value
+    else
+      value = @getAttribute(key)
+      #value = field.defaultValue(@) if value == undefined
+      #field.decode(value, @)
+  ).meta(meta)
+
+  descriptor
+
 # @mixin
 Tower.ModelAttributes =
   Serialization: {}
 
   ClassMethods:
+    reopen: ->
+      result = @_super(arguments...)
+      delete Ember.meta(@, 'emberFields')['emberFields']
+      Ember.propertyDidChange(@, 'emberFields')
+      result
+      
+    emberFields: Ember.computed(->
+      map = Ember.Map.create()
+
+      @eachComputedProperty (name, meta) ->
+        if meta.isAttribute
+          map.set(name, meta)
+
+      map
+    ).cacheable()
+
     # @todo there are no tests for this yet.
     dynamicFields: true
 

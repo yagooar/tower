@@ -1,9 +1,11 @@
 _ = Tower._
 
 if typeof Ember != 'undefined'
+  emberObjectExtend = Ember.Object.extend
+  
   coffeescriptMixin =
     __extend: (child) ->
-      object = Ember.Object.extend.apply @
+      object = emberObjectExtend.apply @
       object.__name__ = child.name
       @extended.call(object) if @extended
       object
