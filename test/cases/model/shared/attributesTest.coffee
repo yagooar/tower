@@ -3,26 +3,30 @@ attr        = Tower.ModelAttribute
 describe "Tower.ModelFields", ->
   describe 'Tower.field', ->
     test 'string', ->
-      field = Tower.field('title')
+      field = Tower.field()
       meta  = field._meta
 
-      assert.deepEqual meta,
-        isAttribute: true
-        type: 'String'
-        encodingType: 'String'
-        itemType: undefined
+      assert.equal meta.isAttribute, true
+      assert.equal meta.type, 'String'
+      assert.equal meta.encodingType, 'String'
 
     describe '.extend', ->
       test 'string', (done) ->
         App.TowerFieldTest = Tower.Model.extend
           title: Tower.field()
           email: Tower.field()
+          willWatchProperty: (key) ->
+            console.log 'watch', key
 
         #record = App.TowerFieldTest.build(title: 'Something!')
 
         App.TowerFieldTest.get('emberFields')
-        App.TowerFieldTest.reopen(firstName: Tower.field('firstName'))
-        App.TowerFieldTest.get('emberFields')
+        App.TowerFieldTest.reopen(firstName: Tower.field())
+        #console.log App.TowerFieldTest.get('emberFields').get('firstName')
+        #console.log App.TowerFieldTest._defaultAttributesForEmber({})
+        App.TowerFieldTest.emberField('lastName')
+        #console.log App.TowerFieldTest._defaultAttributesForEmber({})
+        console.log Ember.watch.toString()
         done()
 
   describe 'class', ->

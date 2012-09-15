@@ -2,6 +2,14 @@ _ = Tower._
 
 # @todo needs lots of refactoring
 class Tower.ModelAttribute
+  @build: (owner, name, options = {}, block) ->
+    attribute = new @(name, options, block)
+    attribute.owner = owner
+    attribute._defineAttribute(options)
+    attribute._addValidations(options)
+    attribute._addIndex(options)
+    attribute
+
   @attributeOptions: (options = {}) ->
     type = options.type || 'String'
 
@@ -58,8 +66,7 @@ class Tower.ModelAttribute
   # @option options [Boolean|String|Function] set If `set` is a boolean, it will look for a method
   #   named `"set#{field.name}"` on the prototype.  If it's a string, it will call that method on the prototype.
   #   If it's a function, it will call that function as if it were on the prototype.
-  constructor: (owner, name, options = {}, block) ->
-    @owner        = owner
+  constructor: (name, options = {}, block) ->
     @name         = key = name
 
     if typeof options == 'string'
@@ -86,9 +93,6 @@ class Tower.ModelAttribute
 
     @_setDefault(options)
     @_defineAccessors(options)
-    @_defineAttribute(options)
-    @_addValidations(options)
-    @_addIndex(options)
 
   _setDefault: (options) ->
     @_default = options.default
@@ -213,6 +217,13 @@ class Tower.ModelAttribute
     for validator in @owner.validators()
       result.push(validator) if validator.attributes.indexOf(@name) != -1
     result
+
+  validatorsForEmber: Ember.computed(->
+    result = []
+    for validator in @owner.validators()
+      result.push(validator) if validator.attributes.indexOf(@name) != -1
+    result
+  ).cacheable()
 
   defaultValue: (record) ->
     _default = @_default

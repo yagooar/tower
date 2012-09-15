@@ -1,23 +1,21 @@
 _ = Tower._
 
-Tower.field = (name, options = {}) ->
-  options = Tower.ModelAttribute.attributeOptions(options)
-
-  meta = options
-  meta.isAttribute = true
+Tower.field = (options = {}) ->
+  field = new Tower.ModelAttribute(null, options)
+  field.isAttribute = true
 
   descriptor = Ember.computed((key, value) ->
     if arguments.length == 2
-      #value = field.encode(value, @)
+      value = field.encode(value, @)
       value = @setAttribute(key, value)
       # @todo this is having issues with App.MyModel.build
       # Tower.cursorNotification("#{@constructor.className()}.#{key}")
       value
     else
       value = @getAttribute(key)
-      #value = field.defaultValue(@) if value == undefined
-      #field.decode(value, @)
-  ).meta(meta)
+      value = field.defaultValue(@) if value == undefined
+      field.decode(value, @)
+  ).meta(field)
 
   descriptor
 
@@ -31,16 +29,6 @@ Tower.ModelAttributes =
       delete Ember.meta(@, 'emberFields')['emberFields']
       Ember.propertyDidChange(@, 'emberFields')
       result
-      
-    emberFields: Ember.computed(->
-      map = Ember.Map.create()
-
-      @eachComputedProperty (name, meta) ->
-        if meta.isAttribute
-          map.set(name, meta)
-
-      map
-    ).cacheable()
 
     # @todo there are no tests for this yet.
     dynamicFields: true
@@ -79,7 +67,22 @@ Tower.ModelAttributes =
     # @return [Tower.ModelAttribute]
     field: (name, options) ->
       # @todo convert this to Ember.Map so it's an ordered set
-      @fields()[name] = new Tower.ModelAttribute(@, name, options)
+      @fields()[name] = Tower.ModelAttribute.build(@, name, options)
+
+    emberField: (name, options) ->
+      attributes        = {}
+      attributes[name]  = Tower.field(options)
+
+      # @todo apply to last mixin
+      @reopen(attributes)
+
+    _reopenLast: (mixin) ->
+      mixins      = @PrototypeMixin.mixins
+      properties  = mixins[mixins.length - 1].properties
+      if properties
+        _.extend(properties, mixin)
+      else
+        @reopen(mixin)
 
     # The set of fields for the model.
     #
@@ -99,6 +102,18 @@ Tower.ModelAttributes =
 
       fields
 
+    # http://stackoverflow.com/questions/12168118/ember-how-to-get-class-properties
+    emberFields: Ember.computed(->
+      map = Ember.Map.create()
+
+      @eachComputedProperty (name, meta) ->
+        if meta.isAttribute
+          meta.name = name
+          map.set(name, meta)
+
+      map
+    ).cacheable()
+
     # Returns a hash with keys for every attribute, and the default value (or `undefined`).
     # 
     # @private
@@ -114,8 +129,21 @@ Tower.ModelAttributes =
 
       attributes
 
+    _defaultAttributesForEmber: (record) ->
+      attributes = {}
+
+      @get('emberFields').forEach (name, meta) =>
+        attributes[name] = meta.defaultValue(record)
+
+      attributes.type ||= @className() if @isSubClass()
+
+      attributes
+
     initializeAttributes: (record, attributes) ->
       _.defaults(attributes, @_defaultAttributes(record))
+
+    initializeAttributesForEmber: (record, attributes) ->
+      _.defaults(attributes, @_defaultAttributesForEmber(record))
 
     # attributeNames: Ember.computed ->
 
