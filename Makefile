@@ -96,6 +96,10 @@ test-opera:
 test-all:
 	for i in $(STORES); do ./node_modules/mocha/bin/mocha $(SRC) --store $$i; done
 
+# make test-file name=bindableCursorCriteria
+test-file:
+	mocha $(shell find test -name "*$(name)Test.coffee")
+
 clean:
 	rm -rf dist/*
 	rm -rf lib/*
@@ -137,4 +141,4 @@ define get-processes
 	$(shell ps -ef | grep -e '$(1)' | grep -v grep)
 endef
 
-.PHONY: all test-memory test-mongodb test test-all test-client build dist check-phantomjs check-grunt check-forever build-test-client start-test-client
+.PHONY: all test-file test-memory test-mongodb test test-all test-client build dist check-phantomjs check-grunt check-forever build-test-client start-test-client
