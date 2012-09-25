@@ -50,6 +50,31 @@ Tower.ModelCursorOperations = Ember.Mixin.create
   #
   # @param [Object] conditions
   where: (conditions) ->
+    if Ember.Object.detectInstance(conditions)
+      # simple case:
+      #observers = Tower.findObservedKeys(conditions)
+      #
+      #for key in observers
+      #  conditions.addObserver key, ->
+      #    @set('isDirty', true)
+      # 
+      # trying to use bindings to find out more about the property.
+      # still... this only works for global properties,
+      # not sure how to handle it for relative ones.
+      bindings = Tower.findBindings(conditions)
+
+      for binding in bindings
+        from  = binding._from
+        to    = binding._to
+        do (to, from) =>
+          conditions.addObserver from, ->
+            @set('isDirty', true)
+
+          # if we know it's an array, then also watch for array changes
+          if to == '$in'
+            conditions.addObserver from + '.length', ->
+              @set('isDirty', true)
+        
     if conditions.isCursor
       @merge(conditions)
     else if arguments.length == 2

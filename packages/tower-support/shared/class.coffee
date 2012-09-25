@@ -70,6 +70,45 @@ if typeof Ember != 'undefined'
     values[Ember.guidFor(newKey)] = value
     undefined
 
+  # @todo Is this part of ember?
+  findObservedKeys = (object, maxDepth = 1, depth = 0) ->
+    meta          = Ember.meta(object)
+    observedKeys  = _.keys(meta.watching)
+    
+    return observedKeys if observedKeys if depth >= maxDepth
+
+    newKeys       = _.keys(meta.descs)
+    # source        = meta.source
+    for newKey in newKeys
+      childObject = object[newKey]
+
+      if Ember.Object.detectInstance(childObject)
+        childObservedKeys = Tower.findObservedKeys(childObject, maxDepth, depth + 1)
+
+        observedKeys = observedKeys.concat(childObservedKeys) if childObservedKeys.length
+
+    observedKeys
+
+  Tower.findObservedKeys = ->
+    _.uniq findObservedKeys(arguments...)
+
+  Tower.findBindings = (object, maxDepth = 1, depth = 0) ->
+    meta          = Ember.meta(object)
+    bindings      = []
+    newKeys       = _.keys(meta.descs)
+
+    # source        = meta.source
+    for newKey in newKeys
+      childObject = object[newKey]
+      if newKey.match(/Binding$/)
+        bindings.push(childObject)
+      else if depth < maxDepth
+        if Ember.Object.detectInstance(childObject)
+          childBindings = Tower.findBindings(childObject, maxDepth, depth + 1)
+          bindings = bindings.concat(childBindings) if childBindings.length
+
+    bindings
+
   #if Tower.nativeExtensions
   #  _.extend(Function.prototype, coffeescriptMixin, towerMixin)
 else
