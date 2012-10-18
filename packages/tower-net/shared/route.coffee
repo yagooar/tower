@@ -204,10 +204,29 @@ class Tower.NetRoute extends Tower.Class
       @controller   = options.controller
       @keys         = []
       @pattern      = @extractPattern(@path)
-      @id           = @path
-      @state        = options.state
+      @module       = options.module
+      @actionMethod = options.actionMethod
+
+      @id = options.id || options.state
+
       if @controller
-        @id += @controller.name + @controller.action
+        @controllerName = @controller.name
+        @collectionName = _.camelize(@controller.name.replace(/Controller$/, ''), true)
+        @action = @controller.action
+        unless @id
+          id = []
+          id.push(@module) if @module
+          id.push(@collectionName, @action)
+          @id = id.join('.')
+
+        unless @actionMethod
+          method = @action
+          method += _.camelize(@module) if @module
+          method += _.camelize(@collectionName)
+
+          @actionMethod = method
+
+      @state = @id
 
       @_super()
 

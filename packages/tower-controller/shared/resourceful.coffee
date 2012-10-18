@@ -152,12 +152,12 @@ Tower.ControllerResourceful =
   # @return [void] Requires a callback.
   findResource: (callback) ->
     @scoped (error, scope) =>
-      return callback.call @, error, null if error
+      return callback.call(@, error, null) if error && callback
       scope.find @params.id, (error, resource) =>
         @set 'resource', resource
         @set @resourceName, resource
         #@[@resourceName]  = @resource = resource
-        callback.call @, error, resource
+        callback.call(@, error, resource) if callback
 
   # Returns the set of records for the scope.
   #

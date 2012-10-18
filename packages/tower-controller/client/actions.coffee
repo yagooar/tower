@@ -14,17 +14,16 @@ Tower.ControllerActions =
     @createResource (error, resource) =>
       return @failure(error) unless resource
 
+  find: ->
+    @findResource()
+
   # Default implementation for the 'show' action.
   show: ->
-    @findResource (error, resource) =>
-      return @failure(error) if error
-      @render 'show'
+    @render 'show' # if @isLeaf()
 
   # Default implementation for the 'edit' action.
   edit: ->
-    @findResource (error, resource) =>
-      return @failure(error) if error
-      @render 'edit'
+    @render 'edit'
 
   # Default implementation for the 'update' action.
   update: ->

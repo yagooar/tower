@@ -390,9 +390,95 @@ describe "Tower.RouteDSL", ->
     it 'should build a url from a model class', ->
       url = Tower.urlFor
       
-  describe 'namespace', ->
-  
-  test 'root'
+  describe 'states', ->
+    beforeEach ->
+      Tower.Route.clear()
+
+    test 'default state', ->
+      Tower.Route.draw ->
+        @match '/blog', to: 'blogs#index'
+      
+      route = Tower.Route.all()[0]
+
+      assert.equal 'BlogsController', route.controllerName
+      assert.equal 'index', route.action
+      assert.equal 'blogs.index', route.id
+      assert.equal route.id, route.state
+
+    test 'explicit state', ->
+      Tower.Route.draw ->
+        @match '/blog', to: 'blogs#index', id: 'main.index'
+      
+      route = Tower.Route.all()[0]
+
+      assert.equal 'BlogsController', route.controllerName
+      assert.equal 'index', route.action
+      assert.equal 'main.index', route.id
+      assert.equal route.id, route.state
+
+    test 'namespace with state', ->
+      Tower.Route.draw ->
+        @namespace 'api', ->
+          @match '/blog', to: 'blogs#index'
+      
+      route = Tower.Route.all()[0]
+
+      assert.equal '/api/blog.:format?', route.path
+      assert.equal 'BlogsController', route.controllerName
+      assert.equal 'index', route.action
+      assert.equal 'api.blogs.index', route.id
+
+    test 'controller with state', ->
+      Tower.Route.draw ->
+        @controller 'food', ->
+          @match 'bacon', action: 'bacon'
+
+      route = Tower.Route.all()[0]
+
+      assert.equal '/bacon.:format?', route.path
+      assert.equal 'FoodController', route.controllerName
+      assert.equal 'bacon', route.action
+      assert.equal 'food.bacon', route.id
+
+    #test 'scope with state', ->
+    #  Tower.Route.draw ->
+    #    @scope 'blog', ->
+    #      @match '/', to: 'index'
+    #
+    #  route = Tower.Route.all()[0]
+    #
+    #  assert.equal '/blog/.:format?', route.path
+
+    test 'nested resourceful routes with state', ->
+      Tower.Route.draw ->
+        @resources 'posts', ->
+          @resources 'comments'
+
+      route = Tower.Route.all()[7]
+
+      assert.equal 'postComments', route.name
+      assert.equal 'postComments.index', route.id # vs. post.show.comments.index
+      assert.equal 'CommentsController', route.controllerName
+      assert.equal 'index', route.action
+
+    test 'nested resourceful routes with namespace and state', ->
+      Tower.Route.draw ->
+        @namespace 'api', ->
+          @resources 'posts', ->
+            @resources 'comments'
+
+      route = Tower.Route.all()[7]
+
+      assert.equal '/api/posts/:postId/comments.:format?', route.path
+      assert.equal 'apiPostComments', route.name
+      assert.equal 'apiPostComments.index', route.id # vs. post.show.comments.index, which is probably what we should do
+      assert.equal 'CommentsController', route.controllerName
+      assert.equal 'index', route.action
+      # assert.equal 'indexApiPostComments', route.actionMethod
+
+    # test 'shallow: true'
+
+  # test 'root'
 ###  
   describe 'states', ->
     beforeEach ->

@@ -1,3 +1,4 @@
+# http://livsey.org/blog/2012/10/09/breaking-up-your-routes-in-ember-dot-js/
 Tower.Router = Ember.Router.extend
   urlForEvent: (eventName) ->
     path = @._super(eventName);
@@ -92,55 +93,30 @@ Tower.Router = Ember.Router.extend
             controller.exitAction(action)
 
   insertRoute: (route) ->
-    if route.state
-      path = route.state
-    else
-      path = []
-      route.path.replace /\/([^\/]+)/g, (_, $1) ->
-        path.push($1.split('.')[0])
-
-      path = path.join('.')
-
-    return undefined if !path || path == ""
-
-    r       = path.split('.')
-    state   = @root
-    controllerName = route.controller.name
-
+    parentState = @root
+    names   = route.state.split('.')
     i       = 0
-    n       = r.length
 
-    while i < n
-      states = Ember.get(state, 'states')
+    while i < names.length
+      name    = names[i]
+      id      = names[0..i].join('.')
+      states  = Ember.get(parentState, 'states')
 
       if !states
         states = {}
-        Ember.set(state, 'states', states)
+        Ember.set(parentState, 'states', states)
 
-      s = Ember.get(states, r[i])
-      if s
-        state = s
+      state = Ember.get(states, name)
+
+      if state
+        parentState = state
       else
-        routeName = '/'
-
-        # @todo tmp hack
-        if (r[i] == r[0] || r[i] == 'new') && r[i] != 'root'
-            routeName += r[i]
-
-        # @todo tmp hack
-        # Basically, create methods like `showUser` and `indexUsers`, which
-        # will call Ember.State.transitionTo('users.show'), pass the correct context, etc.
-        if !controllerName.toLowerCase().match(r[i])
-          methodName = r[i] + _.singularize(_.camelize(controllerName.replace('Controller', '')))
-          Tower.router.root[methodName] = Ember.State.transitionTo(r.join('.'))
-          Tower.router.root.eventTransitions[methodName] = r.join('.')
+        Tower.router.root[methodName] = Ember.State.transitionTo(route.id)
+        Tower.router.root.eventTransitions[methodName] = route.id
         
-        myAction = r[i]
-        myAction = route.options.action if route.options.action?
-        
-        s = @createControllerActionState(controllerName, myAction, routeName)
-        state.setupChild(states, r[i], s)
-        state = s
+        state = @createControllerActionState(route.controllerName, route.action, route.path)
+        parentState.setupChild(states, name, state)
+        parentState = state
 
       i++
 

@@ -5,9 +5,7 @@ class Tower.NetRouteDSL
     @_scope = {}
 
   match: ->
-    @scope ||= {}
-    route = new Tower.NetRoute(@_extractOptions(arguments...))
-    Tower.NetRoute.create(route)
+    Tower.NetRoute.create(new Tower.NetRoute(@_extractOptions(arguments...)))
 
   get: ->
     @matchMethod("get", _.args(arguments))
@@ -37,7 +35,6 @@ class Tower.NetRouteDSL
       options.name = @_scope.name + _.camelize(options.name)
 
     path = "/#{name}"
-    path = @_scope.path + path if @_scope.path
 
     @match(path, options)
     @
@@ -50,6 +47,10 @@ class Tower.NetRouteDSL
     @
 
   controller: (controller, options, block) ->
+    if typeof options == 'function'
+      block = options
+      options = {}
+
     options.controller = controller
     @scope(options, block)
 
@@ -76,7 +77,7 @@ class Tower.NetRouteDSL
   resource: (name, options = {}) ->
     options.controller = name
     path = "/#{name}"
-    path = @_scope.path + path if @_scope.path
+    #path = @_scope.path + path if @_scope.path
 
     if @_scope.name
       name = @_scope.name + _.camelize(name)
@@ -99,7 +100,6 @@ class Tower.NetRouteDSL
     options.controller ||= name
 
     path = "/#{name}"
-    path = @_scope.path + path if @_scope.path
 
     if @_scope.name
       many = @_scope.name + _.camelize(name)
@@ -119,7 +119,11 @@ class Tower.NetRouteDSL
     @match "#{path}/:id",       _.extend(action: "destroy", state: "#{many}.destroy", method: "DELETE", options)
 
     if block
-      @scope _.extend(path: "#{path}/:#{_.singularize(name)}Id", name: one, options), block
+      scopePath = if @_scope.path then "#{@_scope.path}#{path}" else path
+      scopePath += "/:#{_.singularize(name)}Id"
+      scopePath = '/' + scopePath unless scopePath.charAt(0) == '/'
+      # path = @_scope.path + path if @_scope.path
+      @scope _.extend(path: scopePath, name: one, options), block
 
     @
 
@@ -128,11 +132,17 @@ class Tower.NetRouteDSL
   member: ->
 
   root: (options) ->
-    @match '/', _.extend(as: "root", options)
+    @match '/', _.extend(as: 'root', options)
 
   _extractOptions: ->
+    @scope ||= {}
+
     args            = _.args(arguments)
     path            = "/" + args.shift().replace(/^\/|\/$/, "")
+
+    path = @_scope.path + path if @_scope.path
+
+    path = '/' + path unless path.charAt(0) == '/'
 
     if typeof args[args.length - 1] == "object"
       options       = args.pop()
@@ -160,6 +170,7 @@ class Tower.NetRouteDSL
       anchor:         anchor
       ip:             options.ip
       state:          options.state
+      module:         options.module || @_scope.module
 
     options
 

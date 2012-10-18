@@ -98,10 +98,17 @@ module.exports = (grunt) ->
         src: ['dist/tower.js']
         strip: 'dist/'
         dest: _path.join('test/example', 'vendor/javascripts')
+      clientForTestsPublic:
+        src: ['dist/tower.js']
+        strip: 'dist/'
+        dest: _path.join('test/example', 'public/javascripts/vendor/javascripts')
     watch:
       packageJSON:
         files: ['packages/**/package.json', 'packages/tower-generator/server/generators/**/templates/**/*']
         tasks: ['copy:packageJSON']
+      #forTest:
+      #  files: ['packages/**/*.coffee']
+      #  tasks: ['build:client', 'copy:clientForTestsPublic']
       #mainPackageJSON:
       #  files: ['package.json']
       #  tasks: ['injectTestDependencies:packageJSON']
@@ -198,6 +205,8 @@ module.exports = (grunt) ->
     #    dest: wikiFile
     #  
     #  config
+
+  delete config.watch.forTests
 
   grunt.initConfig(config)
 

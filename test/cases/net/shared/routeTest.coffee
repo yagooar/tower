@@ -51,4 +51,3 @@ describe "Tower.NetRoute", ->
     
     
   describe 'pattern', ->
-    
