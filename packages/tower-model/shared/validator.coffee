@@ -36,18 +36,17 @@ class Tower.ModelValidator
       if _.isHash(value)
         validatorOptions = _.moveProperties(validatorOptions, value, 'on', 'if', 'unless', 'allow', 'scope')
 
-      validators.push Tower.ModelValidator.create(key, value, attributes, validatorOptions)
+      if key == 'length'
+        for own k, v of value
+          single_pair = {}
+          single_pair[k] = v
+          validators.push Tower.ModelValidator.create(key, single_pair, attributes, validatorOptions)
+      else
+        validators.push Tower.ModelValidator.create(key, value, attributes, validatorOptions)
 
     validators
 
   @create: (name, value, attributes, options) ->
-    if typeof name == 'object'
-      attributes = value
-      @_create(key, value, attributes, options) for key, value of name
-    else
-      @_create(name, value, attributes, options)
-
-  @_create: (name, value, attributes, options) ->
     switch name
       when 'presence', 'required'
         new Tower.ModelValidatorPresence(name, value, attributes, options)
@@ -126,7 +125,7 @@ class Tower.ModelValidator
     true
 
   # Default implementation of handling failure for this validator.
-  # 
+  #
   #
   # @param [Function] callback
   #
